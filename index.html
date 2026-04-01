@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Osaamiskartoitus</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f4f6fa;color:#222;min-height:100vh}
+
+/* ---- SURVEY ---- */
+#survey-screen{max-width:740px;margin:0 auto;padding:24px 16px 32px}
+.progress-wrap{margin-bottom:6px}
+.progress-track{height:8px;background:#dde2ea;border-radius:8px;overflow:hidden;margin-bottom:6px}
+.progress-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#8baddc,#18b89e);transition:width .3s}
+.progress-label{font-size:12px;color:#888;text-align:right}
+.theme-badge{display:inline-block;padding:5px 16px;border-radius:20px;font-size:13px;font-weight:700;color:#fff;margin:14px 0 20px;letter-spacing:.3px}
+.q-card{background:#fff;border-radius:14px;padding:32px 28px 28px;box-shadow:0 2px 14px rgba(0,0,0,.08);margin-bottom:24px;border-left:5px solid #ccc;transition:border-color .3s}
+.q-meta{font-size:12px;color:#aaa;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.q-text{font-size:19px;font-weight:700;line-height:1.55;color:#1a1a2e;margin-bottom:26px}
+.options{list-style:none;display:flex;flex-direction:column;gap:8px}
+.opt-label{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border-radius:9px;cursor:pointer;border:2px solid #e8eaf0;transition:all .15s;user-select:none}
+.opt-label:hover{background:#f0f5ff;border-color:#b8ccec}
+.opt-label.selected{background:#eef4fb;border-color:#8baddc}
+.opt-label input[type=radio]{width:17px;height:17px;margin-top:1px;flex-shrink:0;accent-color:#8baddc;cursor:pointer}
+.opt-score{font-weight:800;font-size:15px;color:#8baddc;min-width:18px;flex-shrink:0}
+.opt-text{font-size:14px;color:#444;line-height:1.45}
+.nav-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 22px;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;border:none;transition:all .18s;letter-spacing:.2px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-back{background:#e6e9f0;color:#555}
+.btn-back:hover:not(:disabled){background:#d5d9e5}
+.btn-fwd{background:#8baddc;color:#fff}
+.btn-fwd:hover:not(:disabled){background:#7a9ccb}
+.btn-summary{background:#18b89e;color:#fff}
+.btn-summary:hover:not(:disabled){background:#15a38c}
+
+/* ---- RESULTS ---- */
+#results-screen{max-width:780px;margin:0 auto;padding:24px 16px 40px}
+.results-title{font-size:24px;font-weight:800;color:#1a1a2e;text-align:center;margin-bottom:28px}
+.chart-card{background:#fff;border-radius:14px;padding:28px 20px 32px;box-shadow:0 2px 14px rgba(0,0,0,.08);margin-bottom:22px}
+.chart-heading{text-align:center;font-size:15px;font-weight:600;color:#666;margin-bottom:22px;letter-spacing:.3px}
+.chart-layout{display:grid;grid-template-columns:1fr 300px 1fr;grid-template-rows:1fr 1fr;gap:14px;align-items:center}
+.c-label{padding:13px 14px;border-radius:10px;font-size:13px;font-weight:600;line-height:1.4}
+.c-label strong{display:block;font-size:21px;font-weight:800;margin-top:5px}
+.lbl-t4{grid-column:1;grid-row:1;background:#18b89e;color:#fff}
+.lbl-t1{grid-column:3;grid-row:1;background:#8baddc;color:#fff}
+.lbl-t3{grid-column:1;grid-row:2;background:#FADE07;color:#333}
+.lbl-t2{grid-column:3;grid-row:2;background:#df006e;color:#fff}
+.chart-svg-wrap{grid-column:2;grid-row:1/3;display:flex;justify-content:center;align-items:center}
+
+/* interpretation */
+.interp-card{background:#fff;border-radius:14px;padding:26px 28px;box-shadow:0 2px 14px rgba(0,0,0,.08);margin-bottom:22px}
+.interp-title{font-size:17px;font-weight:800;color:#1a1a2e;margin-bottom:14px}
+.interp-intro{font-size:14px;line-height:1.7;color:#555;margin-bottom:16px}
+.interp-item{display:flex;gap:11px;align-items:flex-start;padding:11px 14px;border-radius:8px;margin-bottom:9px;font-size:14px;line-height:1.55;color:#333}
+.interp-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0;margin-top:3px}
+
+/* actions */
+.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+.btn-pdf{background:#df006e;color:#fff}
+.btn-pdf:hover{background:#c50060}
+.btn-restart{background:#e6e9f0;color:#555}
+.btn-restart:hover{background:#d5d9e5}
+
+/* print */
+@media print{
+  body{background:#fff}
+  .actions{display:none!important}
+  #survey-screen{display:none!important}
+  .chart-card,.interp-card{box-shadow:none;border:1px solid #e0e0e0}
+  .results-title{font-size:20px}
+}
+
+/* mobile */
+@media(max-width:580px){
+  .chart-layout{grid-template-columns:1fr;grid-template-rows:auto}
+  .lbl-t4{grid-column:1;grid-row:1}
+  .lbl-t1{grid-column:1;grid-row:2}
+  .chart-svg-wrap{grid-column:1;grid-row:3}
+  .lbl-t3{grid-column:1;grid-row:4}
+  .lbl-t2{grid-column:1;grid-row:5}
+  .q-text{font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SURVEY SCREEN ===== -->
+<div id="survey-screen">
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="pfill" style="width:0%"></div></div>
+    <div class="progress-label" id="plabel">Väittämä 1 / 32</div>
+  </div>
+  <div class="theme-badge" id="tbadge"></div>
+  <div class="q-card" id="qcard">
+    <div class="q-meta" id="qmeta"></div>
+    <div class="q-text" id="qtext"></div>
+    <ul class="options" id="opts"></ul>
+  </div>
+  <div class="nav-row">
+    <button class="btn btn-back" id="btnPrev">&#8592; Edellinen</button>
+    <button class="btn btn-fwd"  id="btnNext">Seuraava &#8594;</button>
+    <button class="btn btn-summary" id="btnSummary" style="display:none">Tee yhteenveto &#10003;</button>
+  </div>
+</div>
+
+<!-- ===== RESULTS SCREEN ===== -->
+<div id="results-screen" style="display:none">
+  <h1 class="results-title">Yhteenveto osaamisen arvioinnista</h1>
+
+  <div class="chart-card">
+    <div class="chart-heading">Itsearvioinnin tulokset</div>
+    <div class="chart-layout">
+      <div class="c-label lbl-t4">
+        4 Tulevaisuus- ja ennakointiosaaminen, verkostoituminen ja asiakaskohtaamisen taidot
+        <strong id="p4">–</strong>
+      </div>
+      <div class="chart-svg-wrap">
+        <svg id="donut" viewBox="0 0 300 300" width="300" height="300" aria-label="Osaamisprofiili donut-kaavio"></svg>
+      </div>
+      <div class="c-label lbl-t1">
+        1 Johtaminen, HR ja strategiatyö
+        <strong id="p1">–</strong>
+      </div>
+      <div class="c-label lbl-t3">
+        3 Uudet teknologiat ja datapohjainen kehittämisosaaminen
+        <strong id="p3">–</strong>
+      </div>
+      <div class="c-label lbl-t2">
+        2 Prosessiosaaminen, myynti ja markkinointi
+        <strong id="p2">–</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="interp-card">
+    <h2 class="interp-title">Näin tulkitset kuvion tulokset</h2>
+    <p class="interp-intro">Kompetenssit, jotka arvioit korkeimmalle näkyvät kuviossa isompina palasina. Neljä kaupan alan päämoduulia tai osaamisaluetta on tässä osaamiskaaviossa merkitty eri pääväreillä. Mitä isompi tietyn moduulin väri on, sitä enemmän se osaamisprofiilissasi korostuu. Mitä isompi osa-alueen koko ja prosenttilukema on, sitä vahvempi olet kyseisellä osa-alueella. Tässä tulkintaa pähkinänkuoressa:</p>
+    <div class="interp-item" style="background:#eef4fb">
+      <div class="interp-dot" style="background:#8baddc"></div>
+      <div><strong>Sininen moduuli 1 suurin:</strong> Olet kaupan alan visionääri ja pidät katseen tulevaisuudessa. Näet helposti uudet mahdollisuudet ja kokeilet uutta. Kehität kokonaisvaltaisesti liiketoiminnan kannattavuuden ja kestävyyden näkökulmasta.</div>
+    </div>
+    <div class="interp-item" style="background:#fde6f1">
+      <div class="interp-dot" style="background:#df006e"></div>
+      <div><strong>Punainen moduuli 2 suurin:</strong> Olet osto-, myynti- ja markkinointiprosessien ammattilainen. Prosessi-, menetelmä- ja työkaluosaaminen on sinulla vahvaa.</div>
+    </div>
+    <div class="interp-item" style="background:#fefbe5">
+      <div class="interp-dot" style="background:#FADE07"></div>
+      <div><strong>Oranssi 3 moduuli suurin:</strong> Hallitset kaupan alan teknologiset, lainsäädännölliset ja normatiiviset reunaehdot. Kokemustaustalla voi olla paljon työtä ohjeistusten ja/tai järjestelmien kehittämisen parissa.</div>
+    </div>
+    <div class="interp-item" style="background:#e5f8f5">
+      <div class="interp-dot" style="background:#18b89e"></div>
+      <div><strong>Vihreä moduuli 4 suurin:</strong> Olet verkostojen rakentaja ja ylläpitäjä ja uusien toimintamallien kehittäjä.</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-pdf" onclick="window.print()">&#8595; Tallenna PDF</button>
+    <button class="btn btn-restart" onclick="restart()">&#8635; Aloita alusta</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const THEMES = [
+  { id:1, name:'Johtaminen, HR ja strategiatyö',                                              color:'#8baddc', dark:false },
+  { id:2, name:'Prosessiosaaminen, myynti ja markkinointi',                                    color:'#df006e', dark:false },
+  { id:3, name:'Uudet teknologiat ja datapohjainen kehittämisosaaminen',                       color:'#FADE07', dark:true  },
+  { id:4, name:'Tulevaisuus-, verkosto- ja ennakointiosaaminen sekä asiakaskohtaamisen taidot',color:'#18b89e', dark:false }
+];
+
+const QUESTIONS = [
+  // Teema 1
+  {t:1, q:'Pyrin kehittämään johtamistaitojani.'},
+  {t:1, q:'Osaan johtaa ja organisoida eri tiimien työtä.'},
+  {t:1, q:'Toimin esihenkilönä kaupan alalla.'},
+  {t:1, q:'Ymmärrän kestävän kehityksen periaatteet kaupan alalla.'},
+  {t:1, q:'Osaan edistää vastuullista liiketoimintaa eri keinoilla.'},
+  {t:1, q:'Tunnistan oman osaamiseni kehityskohteet ja etsin aktiivisesti mahdollisuuksia oppia uutta.'},
+  {t:1, q:'Osaan hyödyntää työssä oppimista ja palautetta ammatillisen kehittymiseni tukena.'},
+  {t:1, q:'Pystyn soveltamaan uusia oppeja nopeasti muuttuvassa työympäristössä.'},
+  // Teema 2
+  {t:2, q:'Osaan kartoittaa ja houkutella uusia asiakkaita eri kanavien ja keinojen avulla.'},
+  {t:2, q:'Osaan kehittää asiakaskokemusta tavoitteellisesti ja mitattavasti.'},
+  {t:2, q:'Ymmärrän asiakasuskollisuuden merkityksen ja osaan vahvistaa sitä omalla toiminnallani.'},
+  {t:2, q:'Osaan hyödyntää asiakasdataa ymmärtääkseni paremmin asiakkaiden tarpeita ja ostokäyttäytymistä.'},
+  {t:2, q:'Ymmärrän brändin merkityksen asiakaskokemuksessa ja osaan toimia sen mukaisesti.'},
+  {t:2, q:'Osaan suunnitella ja toteuttaa asiakaslähtöistä markkinointia eri kanavissa.'},
+  {t:2, q:'Ymmärrän ostotoiminnan merkityksen osana liiketoimintaa ja sen vaikutuksen yrityksen muihin toimintoihin.'},
+  {t:2, q:'Tunnen ostoprosessin vaiheet.'},
+  // Teema 3
+  {t:3, q:'Tunnen kaupan eri kanavia.'},
+  {t:3, q:'Tunnen kivijalkakaupan ja verkkokaupan erot ja toimintaympäristön vaatimukset.'},
+  {t:3, q:'Ymmärrän, miten digitaaliset ratkaisut ja robotiikka voivat tehostaa kaupan alan prosesseja.'},
+  {t:3, q:'Osaan hyödyntää uusia liiketoimintamalleja ja arvioida niiden vaikutuksia liiketoiminnan kannattavuuteen.'},
+  {t:3, q:'Osaan toimia ympäristössä, jossa robotit, automaatio ja tekoäly ovat osa arjen työprosesseja.'},
+  {t:3, q:'Tiedän, miten tekoälyä hyödynnetään kaupan alalla.'},
+  {t:3, q:'Ymmärrän, millä välineillä ja millaista dataa kerätään kaupan alalla.'},
+  {t:3, q:'Tiedän, miten dataa käytetään ja analysoidaan liiketoiminnan edistämiseksi.'},
+  // Teema 4
+  {t:4, q:'Tiedän millaisia turvallisuusratkaisuja ja turvallisuustekniikkaa kaupan alalla on käytössä.'},
+  {t:4, q:'Osaan kohdata haastavia asiakkaita.'},
+  {t:4, q:'Osaan toimia monikulttuurisessa työympäristössä kunnioittavasti ja vuorovaikutteisesti.'},
+  {t:4, q:'Ymmärrän eri kulttuurien vaikutukset asiakaspalvelutilanteisiin ja osaan huomioida ne työssäni.'},
+  {t:4, q:'Osaan viestiä selkeästi ja rakentavasti myös silloin, kun kieli- ja kulttuuritaustat eroavat.'},
+  {t:4, q:'Ymmärrän globaalien trendien vaikutuksia kaupan alaan ja osaan huomioida ne ennakoivasti.'},
+  {t:4, q:'Osaan seurata kansainvälisiä markkinoita ja hyödyntää tietoa liiketoiminnan suunnittelussa.'},
+  {t:4, q:'Tunnen kansainvälisen kaupan perusteet, säädösvaatimukset ja toimintatavat.'}
+];
+
+const RATINGS = [
+  {v:0, label:'Tämä ei näy toiminnassani ollenkaan'},
+  {v:1, label:'Tämä ei ole työssäni minulle jokapäiväinen asia'},
+  {v:2, label:'Tämä on tärkeä osa-alue työssäni, mutta en toimi aktiivisesti sen puolesta'},
+  {v:3, label:'Olen tässä hyvä, ja toimin luontevasti asian edistämiseksi'},
+  {v:4, label:'Tämä on yksi prioriteeteistani, ja pidän tätä jatkuvasti esillä'},
+  {v:5, label:'Tämä on erityisosaamisalueeni, opetan ja koulutan muita tai saan muutkin toimimaan tällä tavalla'}
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+
+let idx = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+
+// ── SURVEY ────────────────────────────────────────────────────────────────────
+
+function renderQ(i) {
+  const q = QUESTIONS[i];
+  const theme = THEMES[q.t - 1];
+
+  // progress
+  const done = answers.filter(a => a !== null).length;
+  document.getElementById('pfill').style.width = (done / QUESTIONS.length * 100) + '%';
+  document.getElementById('plabel').textContent = 'Väittämä ' + (i+1) + ' / ' + QUESTIONS.length;
+
+  // theme badge
+  const badge = document.getElementById('tbadge');
+  badge.textContent = 'Teema ' + theme.id + ': ' + theme.name;
+  badge.style.background = theme.color;
+  badge.style.color = theme.dark ? '#333' : '#fff';
+
+  // card accent
+  document.getElementById('qcard').style.borderLeftColor = theme.color;
+
+  // question
+  document.getElementById('qmeta').textContent = 'Väittämä ' + (i+1);
+  document.getElementById('qtext').textContent = q.q;
+
+  // options
+  const ul = document.getElementById('opts');
+  ul.innerHTML = '';
+  RATINGS.forEach(r => {
+    const li = document.createElement('li');
+    const lbl = document.createElement('label');
+    lbl.className = 'opt-label' + (answers[i] === r.v ? ' selected' : '');
+
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'q' + i;
+    radio.value = r.v;
+    radio.checked = answers[i] === r.v;
+    radio.addEventListener('change', () => {
+      answers[i] = r.v;
+      ul.querySelectorAll('.opt-label').forEach(l => l.classList.remove('selected'));
+      lbl.classList.add('selected');
+      updateNav();
+    });
+
+    const score = document.createElement('span');
+    score.className = 'opt-score';
+    score.style.color = theme.color;
+    score.textContent = r.v;
+
+    const text = document.createElement('span');
+    text.className = 'opt-text';
+    text.textContent = r.label;
+
+    lbl.appendChild(radio);
+    lbl.appendChild(score);
+    lbl.appendChild(text);
+    li.appendChild(lbl);
+    ul.appendChild(li);
+  });
+
+  updateNav();
+}
+
+function updateNav() {
+  const isLast = idx === QUESTIONS.length - 1;
+  const hasAns = answers[idx] !== null;
+
+  document.getElementById('btnPrev').disabled = idx === 0;
+  document.getElementById('btnNext').style.display  = isLast ? 'none' : 'inline-flex';
+  document.getElementById('btnNext').disabled = !hasAns;
+  document.getElementById('btnSummary').style.display = (isLast && hasAns) ? 'inline-flex' : 'none';
+}
+
+document.getElementById('btnPrev').addEventListener('click', () => {
+  if (idx > 0) { idx--; renderQ(idx); }
+});
+document.getElementById('btnNext').addEventListener('click', () => {
+  if (idx < QUESTIONS.length - 1 && answers[idx] !== null) { idx++; renderQ(idx); }
+});
+document.getElementById('btnSummary').addEventListener('click', showResults);
+
+// ── RESULTS ───────────────────────────────────────────────────────────────────
+
+function calcResults() {
+  const sums = [0, 0, 0, 0];
+  QUESTIONS.forEach((q, i) => { sums[q.t - 1] += (answers[i] || 0); });
+  const total = sums.reduce((a, b) => a + b, 0);
+  let pcts;
+  if (total === 0) {
+    pcts = [25, 25, 25, 25];
+  } else {
+    pcts = sums.map(s => Math.round(s / total * 100));
+    // fix rounding drift
+    const diff = 100 - pcts.reduce((a, b) => a + b, 0);
+    if (diff !== 0) pcts[pcts.indexOf(Math.max(...pcts))] += diff;
+  }
+  return { sums, pcts };
+}
+
+function showResults() {
+  document.getElementById('survey-screen').style.display = 'none';
+  document.getElementById('results-screen').style.display = 'block';
+  const { pcts } = calcResults();
+  document.getElementById('p1').textContent = pcts[0] + ' %';
+  document.getElementById('p2').textContent = pcts[1] + ' %';
+  document.getElementById('p3').textContent = pcts[2] + ' %';
+  document.getElementById('p4').textContent = pcts[3] + ' %';
+  drawDonut(pcts);
+}
+
+// ── DONUT CHART (SVG) ─────────────────────────────────────────────────────────
+
+function pt(cx, cy, r, deg) {
+  const rad = (deg - 90) * Math.PI / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function slicePath(cx, cy, R, r, a1, a2) {
+  if (a2 - a1 >= 359.99) a2 = a1 + 359.99;
+  const o1 = pt(cx, cy, R, a1), o2 = pt(cx, cy, R, a2);
+  const i1 = pt(cx, cy, r, a1), i2 = pt(cx, cy, r, a2);
+  const lg = a2 - a1 > 180 ? 1 : 0;
+  return `M${o1.x},${o1.y} A${R},${R},0,${lg},1,${o2.x},${o2.y} L${i2.x},${i2.y} A${r},${r},0,${lg},0,${i1.x},${i1.y} Z`;
+}
+
+function drawDonut(pcts) {
+  const svg = document.getElementById('donut');
+  svg.innerHTML = '';
+  const cx = 150, cy = 150, R = 138, r = 78;
+  const colors = ['#8baddc','#df006e','#FADE07','#18b89e'];
+  let ang = 0;
+
+  // Draw slices — order: T1 starting at top, clockwise T1→T2→T3→T4
+  // Arrange in visual order matching the label boxes:
+  // top-right T1, bottom-right T2, bottom-left T3, top-left T4
+  const order = [0, 1, 2, 3]; // T1, T2, T3, T4
+  order.forEach(i => {
+    const sweep = pcts[i] / 100 * 360;
+    if (sweep > 0) {
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d', slicePath(cx, cy, R, r, ang, ang + sweep));
+      path.setAttribute('fill', colors[i]);
+      path.setAttribute('stroke', '#fff');
+      path.setAttribute('stroke-width', '2.5');
+      svg.appendChild(path);
+    }
+    ang += sweep;
+  });
+
+  // Centre label
+  const mkTxt = (y, txt, size, weight, fill) => {
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', cx); t.setAttribute('y', y);
+    t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size', size);
+    t.setAttribute('font-weight', weight);
+    t.setAttribute('fill', fill);
+    t.setAttribute('font-family',"-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif");
+    t.textContent = txt;
+    svg.appendChild(t);
+  };
+  mkTxt(144, 'Osaamis-', 13, '500', '#999');
+  mkTxt(162, 'profiili', 13, '500', '#999');
+}
+
+// ── RESTART ───────────────────────────────────────────────────────────────────
+
+function restart() {
+  idx = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  document.getElementById('results-screen').style.display = 'none';
+  document.getElementById('survey-screen').style.display = 'block';
+  renderQ(0);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderQ(0);
+</script>
+</body>
+</html>
