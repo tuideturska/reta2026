@@ -74,7 +74,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-s
 .rec-badge{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0}
 .rec-name{font-size:16px;font-weight:700;color:#1a1a2e;line-height:1.4}
 .wheel-wrap{display:flex;justify-content:center;padding:8px 0}
-#course-wheel{max-width:560px;width:100%;height:auto}
+#course-wheel{width:100%;max-width:700px;height:auto}
 .courses-footer{text-align:center;font-size:16px;font-weight:600;color:#1a1a2e;padding:20px 0 10px}
 .btn-courses{background:#FADE07;color:#333}
 .btn-courses:hover{background:#eacf00}
@@ -201,7 +201,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-s
 
   <div class="courses-card">
     <div class="wheel-wrap">
-      <svg id="course-wheel" viewBox="0 0 600 600" width="100%" aria-label="Kaupan alan kurssikehä"></svg>
+      <svg id="course-wheel" viewBox="80 80 440 440" width="100%" aria-label="Kaupan alan kurssikehä"></svg>
     </div>
   </div>
 
@@ -603,7 +603,7 @@ function drawCourseWheel() {
       t.setAttribute('x', pos.x.toFixed(1));
       t.setAttribute('y', (startY + j*lh).toFixed(1));
       t.setAttribute('text-anchor','middle');
-      t.setAttribute('font-size','9.5');
+      t.setAttribute('font-size','12');
       t.setAttribute('font-weight','700');
       t.setAttribute('fill', DARK[i] ? '#555' : 'rgba(255,255,255,0.93)');
       t.setAttribute('font-family',"-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif");
@@ -635,7 +635,7 @@ function drawCourseWheel() {
     const t = mk('text');
     t.setAttribute('x', pos.x.toFixed(1)); t.setAttribute('y', (pos.y+5).toFixed(1));
     t.setAttribute('text-anchor','middle');
-    t.setAttribute('font-size','13'); t.setAttribute('font-weight','800');
+    t.setAttribute('font-size','15'); t.setAttribute('font-weight','800');
     t.setAttribute('fill', dark ? '#333':'#fff');
     t.setAttribute('pointer-events','none');
     t.setAttribute('font-family',"-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif");
