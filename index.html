@@ -584,39 +584,6 @@ function drawCourseWheel() {
   hole.setAttribute('fill','#fff');
   svg.appendChild(hole);
 
-  // ── Logo in centre hole ──────────────────────────────────────────────────
-  // Partial circle arc (~300°), gap at 4–5 o'clock position (100°→160° gap)
-  const LR = 75; // logo arc radius
-  const arcA = pt(CX, CY, LR, 160); // arc start (bottom of gap)
-  const arcB = pt(CX, CY, LR,  100); // arc end   (right of gap)
-  const larc = mk('path');
-  larc.setAttribute('d',
-    `M${arcA.x.toFixed(1)},${arcA.y.toFixed(1)} ` +
-    `A${LR},${LR} 0 1 1 ${arcB.x.toFixed(1)},${arcB.y.toFixed(1)}`);
-  larc.setAttribute('fill','none');
-  larc.setAttribute('stroke','#1a1a2e');
-  larc.setAttribute('stroke-width','4.5');
-  larc.setAttribute('stroke-linecap','round');
-  svg.appendChild(larc);
-  // Logo text (4 lines, vertically centred in circle)
-  const LLINES = ['Uuden','ajan','kaupan','osaajat'];
-  const LFS = 15, LLH = 18;
-  // first baseline so that 4 lines are vertically centred around CY
-  const LY0 = CY - (LLINES.length - 1) * LLH / 2;
-  LLINES.forEach((word, wi) => {
-    const lt = mk('text');
-    lt.setAttribute('x', CX);
-    lt.setAttribute('y', (LY0 + wi * LLH).toFixed(1));
-    lt.setAttribute('text-anchor','middle');
-    lt.setAttribute('dominant-baseline','middle');
-    lt.setAttribute('font-size', LFS);
-    lt.setAttribute('font-weight','800');
-    lt.setAttribute('fill','#1a1a2e');
-    lt.setAttribute('font-family',"-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif");
-    lt.textContent = word;
-    svg.appendChild(lt);
-  });
-
   // Theme labels inside outer ring at R=163, rotated for readability
   const LBL_R = 163;
   const T_LINES = [
